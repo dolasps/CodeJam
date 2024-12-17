@@ -9,9 +9,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
 
 public class GitLabStaleBranchCleaner {
 
@@ -19,6 +20,7 @@ public class GitLabStaleBranchCleaner {
     private static final String PRIVATE_TOKEN = "YOUR_GITLAB_ACCESS_TOKEN"; // Replace with your token
     private static final String PROJECT_ID = "YOUR_PROJECT_ID"; // Replace with your project ID
     private static final int STALE_DAYS = 30; // Branches older than 30 days will be deleted
+    private static final List<String> PROTECTED_BRANCHES = Arrays.asList("master", "main", "develop");
 
     public static void main(String[] args) throws IOException {
         System.out.println("Starting stale branch detection...");
@@ -39,6 +41,11 @@ public class GitLabStaleBranchCleaner {
                 JSONObject branch = branches.getJSONObject(i);
                 String branchName = branch.getString("name");
                 String commitDate = branch.getJSONObject("commit").getString("committed_date");
+
+                if (PROTECTED_BRANCHES.contains(branchName)) {
+                    System.out.println("Skipping protected branch: " + branchName);
+                    continue;
+                }
 
                 if (isBranchStale(commitDate)) {
                     System.out.println("Stale branch detected: " + branchName);
